@@ -13,6 +13,7 @@
 #define raioOuvir  3
 
 #include <iostream>
+#include<fstream>
 #include <cmath>
 #include <vector>
 #include <ctime>
@@ -193,6 +194,19 @@ public:
         std::cout << " , x: " << posx << " y: " << posy << "\n";
     }
 
+    std::string csv_dump() {
+        std::string out;
+
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 3; j++) {
+                out = out.append(std::to_string(pesosPredadores[i][j]));
+                out = out.append(",");
+            }
+            out = out.append("\n");
+        }
+        return out;
+    }
+
     void processaPredadores(std::vector<predador>* p) {
         for (int i = 0; i < p->size(); i++) {
             vePredador(p->at(i));
@@ -250,12 +264,14 @@ public:
         int simboloOuvido = -1;
         arrayAlertas = a;
         arrayAlertasNext = b;
-        for (int i = 0; i < 3; i++)
+        srand(time(0));
+        for (int i = 0; i < 10; i++)
         {
-            for (int j = 0; j < 10; j++)
+            for (int j = 0; j < 3; j++)
             {
-                srand(time(NULL));
-                pesosPredadores[i][j] = (rand() % 100) / 100;
+                
+                float peso = (rand() % 60);
+                pesosPredadores[i][j] = peso/100 ;
             }
         }
         setPosx(x);
@@ -318,7 +334,7 @@ int main(int argc, char* argv[])
     bool quit = false;
 
     //initialize ant array and environment;
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1 , SDL_RENDERER_ACCELERATED);
 
 
     std::vector<predador> arraypredadores;
@@ -353,6 +369,8 @@ int main(int argc, char* argv[])
 
 
     int x = 0;
+
+    std::string file_contents[monkey_count];
 
     //start code here
 
@@ -419,6 +437,9 @@ int main(int argc, char* argv[])
             
             delete pixel;
 
+            file_contents[i] = file_contents[i].append(arrayvervets[i].csv_dump());
+            file_contents[i] = file_contents[i].append("\n");
+
 
         }
         
@@ -426,8 +447,17 @@ int main(int argc, char* argv[])
         arrayAlertas = arrayAlertasProx;
         arrayAlertasProx.clear();
         SDL_RenderPresent(renderer);
-     SDL_Delay(500);
+     SDL_Delay(100);
 
+    }
+
+    for (int i = 0; i < monkey_count; i++) {
+        std::ofstream arquivo;
+        std::string filename = "monkey_weights";
+        filename.append(std::to_string(i));
+        arquivo.open(filename);
+        arquivo << file_contents[i];
+        arquivo.close();
     }
 
     SDL_Quit();
