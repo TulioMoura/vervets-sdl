@@ -275,7 +275,7 @@ void renderAlerta(alerta a,SDL_Renderer * renderer) {
     int endx = (centerx + raioOuvir) * (SCREEN_W / ENV_W);
     int endy = (centery + raioOuvir) * (SCREEN_H / ENV_H);
 
-    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+    SDL_SetRenderDrawColor(renderer, 0xf9, 0xfc, 0xae, 0x80);
 
     std::cout << " " << centerx << " " << centery << " " << realInitX << " " << realInitY << " "<<endx<<" " << endy << std::endl;
 
@@ -287,10 +287,11 @@ void renderAlerta(alerta a,SDL_Renderer * renderer) {
             float pxDist = ((SCREEN_H / ENV_H) * raioPercepcao);
             if (distancia < pxDist ) {
                 SDL_RenderDrawPoint(renderer, i, j);
+                SDL_SetRenderDrawBlendMode(renderer,SDL_BLENDMODE_BLEND);
             }
         }
     }
-    SDL_RenderPresent(renderer);
+    
 
 }
 
@@ -361,13 +362,22 @@ int main(int argc, char* argv[])
                 quit = true;
             }
         }
+        SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+        SDL_RenderClear(renderer);
+
         SDL_Rect* pixel = new SDL_Rect();
         pixel->h = SCREEN_H;
         pixel->w = SCREEN_W;
         pixel->x = 0;
         pixel->y = 0;
         SDL_FillRect(screenSurface, pixel, SDL_MapRGBA(screenSurface->format, 0xff, 0xff, 0xff, 0xff));
+        SDL_RenderFillRect(renderer, pixel);
         delete pixel;
+
+
+        for (int i = 0; i < arrayAlertas.size(); i++) {
+            renderAlerta(arrayAlertas[i], renderer);
+        }
 
         for (int i = 0; i < (predator_a_count + predator_b_count + predator_c_count); i++) {
             arraypredadores[i].print();
@@ -379,15 +389,17 @@ int main(int argc, char* argv[])
             pixel->y = arraypredadores[i].getPosy() * pixel->h;
 
             if (arraypredadores[i].getTipo() == 1) {
-                SDL_FillRect(screenSurface, pixel, SDL_MapRGBA(screenSurface->format, 0xeb, 0x34, 0x34, 0xff));
+                SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x34, 0xff);
+
             }
             else if (arraypredadores[i].getTipo()==2) {
-                SDL_FillRect(screenSurface, pixel, SDL_MapRGBA(screenSurface->format, 0xeb, 0x34, 0xde, 0xff));
+                SDL_SetRenderDrawColor(renderer,0xeb, 0x34, 0xde, 0xff);
 
             }
             else if (arraypredadores[i].getTipo()==3) {
-                SDL_FillRect(screenSurface, pixel, SDL_MapRGBA(screenSurface->format, 0x34, 0xeb, 0x5e, 0xff));
+                SDL_SetRenderDrawColor(renderer, 0x34, 0xeb, 0x5e, 0xff);
             }
+            SDL_RenderFillRect(renderer, pixel);
             delete pixel;
 
         }
@@ -400,20 +412,20 @@ int main(int argc, char* argv[])
             pixel->w = SCREEN_W / ENV_W;
             pixel->x = arrayvervets[i].getPosx() * pixel->w;
             pixel->y = arrayvervets[i].getPosy() * pixel->h;
-            SDL_FillRect(screenSurface, pixel, SDL_MapRGBA(screenSurface->format, 0x5e, 0x4d, 0x23, 0xff));
+
+
+            SDL_SetRenderDrawColor(renderer, 0x5e, 0x4d, 0x23, 0xff);
+            SDL_RenderFillRect(renderer, pixel);
             
             delete pixel;
 
 
         }
         
-        for (int i = 0; i < arrayAlertas.size(); i++) {
-            renderAlerta(arrayAlertas[i],renderer);
-        }
      
         arrayAlertas = arrayAlertasProx;
         arrayAlertasProx.clear();
-    SDL_UpdateWindowSurface(window);
+        SDL_RenderPresent(renderer);
      SDL_Delay(500);
 
     }
