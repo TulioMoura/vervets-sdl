@@ -318,7 +318,7 @@ int main(int argc, char* argv[])
     bool quit = false;
 
     //initialize ant array and environment;
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, 0, 0);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 
 
     std::vector<predador> arraypredadores;
