@@ -1,5 +1,8 @@
-#define ENV_w  15
+#define ENV_W  15
 #define ENV_H  15
+#define SCREEN_W 480
+#define SCREEN_H 480
+
 
 #define monkey_count  6
 #define predator_a_count  1
@@ -15,7 +18,8 @@
 #include <ctime>
 #include <cstdlib>
 #include <string>
-#include <SDL2/SDL.h>
+#include <SDL.h>
+#include <ctime>
 
 class animal
 {
@@ -248,6 +252,7 @@ public:
         {
             for (int j = 0; j < 10; j++)
             {
+                srand(time(NULL));
                 pesosPredadores[i][j] = (rand() % 100) / 100;
             }
         }
@@ -260,14 +265,31 @@ public:
 };
 int animal::limitx = 15;
 int animal::limity = 15;
-int main(int argv, char** args)
-{
 
+int main(int argc, char* argv[])
+{
+    SDL_Init(SDL_INIT_VIDEO);
+
+    SDL_Window* window = SDL_CreateWindow("Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_W, SCREEN_H, SDL_WINDOW_SHOWN);
+
+    if (!window)
+    {
+        std::cerr << "Error failed to create window!\n";
+        return 1;
+    }
+
+    SDL_Surface* screenSurface = SDL_GetWindowSurface(window);
+
+    SDL_Event event;
+    bool quit = false;
+
+    //initialize ant array and environment;
     std::vector<predador> arraypredadores;
     arraypredadores.resize(predator_a_count + predator_b_count + predator_c_count);
     std::vector<vervet> arrayvervets;
     arrayvervets.resize(monkey_count);
     std::vector<alerta> arrayAlertas;
+    std::vector<alerta> arrayAlertasProx;
 
     for (int i = 0; i < predator_a_count; i++)
     {
@@ -286,24 +308,76 @@ int main(int argv, char** args)
 
     for (int i = 0; i < monkey_count; i++)
     {
-        arrayvervets.at(i) = vervet(0, 0, &arrayAlertas);
+        srand(NULL);
+        int posy = rand() % ENV_H;
+        int posx = rand() % ENV_W;
+        arrayvervets.at(i) = vervet(posx, posy, &arrayAlertas);
     }
 
 
     int x = 0;
-    while (x < 1000)
-    {
+
+    //start code here
+
+    while (!quit) {
+        while (SDL_PollEvent(&event) != 0) {
+            if (event.type == SDL_QUIT) {
+                quit = true;
+            }
+        }
+        SDL_Rect* pixel = new SDL_Rect();
+        pixel->h = SCREEN_H;
+        pixel->w = SCREEN_W;
+        pixel->x = 0;
+        pixel->y = 0;
+        SDL_FillRect(screenSurface, pixel, SDL_MapRGBA(screenSurface->format, 0xff, 0xff, 0xff, 0xff));
+        delete pixel;
+
         for (int i = 0; i < (predator_a_count + predator_b_count + predator_c_count); i++) {
             arraypredadores[i].print();
             arraypredadores[i].moveRandom();
+            SDL_Rect * pixel = new SDL_Rect();
+            pixel->h = SCREEN_H/ENV_H;
+            pixel->w = SCREEN_W/ENV_W;
+            pixel->x = arraypredadores[i].getPosx() * pixel->w;
+            pixel->y = arraypredadores[i].getPosy() * pixel->h;
+
+            if (arraypredadores[i].getTipo() == 1) {
+                SDL_FillRect(screenSurface, pixel, SDL_MapRGBA(screenSurface->format, 0xeb, 0x34, 0x34, 0xff));
+            }
+            else if (arraypredadores[i].getTipo()==2) {
+                SDL_FillRect(screenSurface, pixel, SDL_MapRGBA(screenSurface->format, 0xeb, 0x34, 0xde, 0xff));
+
+            }
+            else if (arraypredadores[i].getTipo()==3) {
+                SDL_FillRect(screenSurface, pixel, SDL_MapRGBA(screenSurface->format, 0x34, 0xeb, 0x5e, 0xff));
+            }
+            delete pixel;
+
         }
 
         for (int i = 0; i < arrayvervets.size(); i++) {
             arrayvervets.at(i).processaAlertas();
             arrayvervets.at(i).processaPredadores(&arraypredadores);
+            SDL_Rect* pixel = new SDL_Rect();
+            pixel->h = SCREEN_H / ENV_H;
+            pixel->w = SCREEN_W / ENV_W;
+            pixel->x = arrayvervets[i].getPosx() * pixel->w;
+            pixel->y = arrayvervets[i].getPosy() * pixel->h;
+            SDL_FillRect(screenSurface, pixel, SDL_MapRGBA(screenSurface->format, 0x5e, 0x4d, 0x23, 0xff));
+            
+            delete pixel;
+
+
         }
-        x++;
+        
+     SDL_UpdateWindowSurface(window);
+     SDL_Delay(2500);
+
     }
+
+    SDL_Quit();
+
 
     return 0;
 }
