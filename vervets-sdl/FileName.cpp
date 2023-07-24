@@ -57,13 +57,13 @@ public:
             posx = posx + ((rand() % 3) - 1);
             posy = posy + ((rand() % 3) - 1);
 
-            if (posx >= limitx)
+            if (posx == limitx)
             {
-                posx = limitx;
+                posx = limitx-1;
             }
-            if (posy >= limity)
+            if (posy == limity)
             {
-                posy = limity;
+                posy = limity-1;
             }
 
             if (posx < 0)
@@ -160,6 +160,7 @@ class vervet : public animal
 {
 public:
     std::vector<alerta>* arrayAlertas;
+    std::vector<alerta>* arrayAlertasNext;
     int simboloOuvido = -1;
     int predadoRecente = -1;
     float pesosPredadores[10][3];
@@ -205,7 +206,7 @@ public:
         {
             int s = getSignal(p.getTipo());
             alerta a = alerta(getPosx(), getPosy(), s);
-            arrayAlertas->push_back(a);
+            arrayAlertasNext->push_back(a);
             predadoRecente = p.getTipo();
             if (simboloOuvido != -1) {
                 if (simboloOuvido != s) {
@@ -244,10 +245,11 @@ public:
         return temp;
     }
 
-    vervet(int x, int y, std::vector<alerta>* a)
+    vervet(int x, int y, std::vector<alerta>* a, std::vector<alerta>* b)
     {
         int simboloOuvido = -1;
         arrayAlertas = a;
+        arrayAlertasNext = b;
         for (int i = 0; i < 3; i++)
         {
             for (int j = 0; j < 10; j++)
@@ -263,8 +265,39 @@ public:
 
     }
 };
+
+
+void renderAlerta(alerta a,SDL_Renderer * renderer) {
+    int centerx = a.getPosx();
+    int centery = a.getPosy();
+    int realInitX =(centerx - raioOuvir) * ( SCREEN_W/ENV_W );
+    int  realInitY =(centery - raioOuvir)*(SCREEN_H/ENV_H);
+    int endx = (centerx + raioOuvir) * (SCREEN_W / ENV_W);
+    int endy = (centery + raioOuvir) * (SCREEN_H / ENV_H);
+
+    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+
+    std::cout << " " << centerx << " " << centery << " " << realInitX << " " << realInitY << " "<<endx<<" " << endy << std::endl;
+
+    for (int i = realInitX; i < endx; i++) {
+        for (int j = realInitY; j < endy; j++) {
+
+            float distancia = sqrt(pow(((centerx* (SCREEN_W / ENV_W)) - i), 2) + pow(((centery * (SCREEN_H / ENV_H)) - j), 2));
+            //std::cout << " " << distancia;
+            float pxDist = ((SCREEN_H / ENV_H) * raioPercepcao);
+            if (distancia < pxDist ) {
+                SDL_RenderDrawPoint(renderer, i, j);
+            }
+        }
+    }
+    SDL_RenderPresent(renderer);
+
+}
+
 int animal::limitx = 15;
 int animal::limity = 15;
+
+
 
 int main(int argc, char* argv[])
 {
@@ -284,6 +317,9 @@ int main(int argc, char* argv[])
     bool quit = false;
 
     //initialize ant array and environment;
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, 0, 0);
+
+
     std::vector<predador> arraypredadores;
     arraypredadores.resize(predator_a_count + predator_b_count + predator_c_count);
     std::vector<vervet> arrayvervets;
@@ -311,7 +347,7 @@ int main(int argc, char* argv[])
         srand(NULL);
         int posy = rand() % ENV_H;
         int posx = rand() % ENV_W;
-        arrayvervets.at(i) = vervet(posx, posy, &arrayAlertas);
+        arrayvervets.at(i) = vervet(posx, posy, &arrayAlertas, &arrayAlertasProx);
     }
 
 
@@ -371,8 +407,14 @@ int main(int argc, char* argv[])
 
         }
         
-     SDL_UpdateWindowSurface(window);
-     SDL_Delay(2500);
+        for (int i = 0; i < arrayAlertas.size(); i++) {
+            renderAlerta(arrayAlertas[i],renderer);
+        }
+     
+        arrayAlertas = arrayAlertasProx;
+        arrayAlertasProx.clear();
+    SDL_UpdateWindowSurface(window);
+     SDL_Delay(500);
 
     }
 
