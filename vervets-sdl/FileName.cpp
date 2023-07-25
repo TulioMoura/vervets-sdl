@@ -373,6 +373,8 @@ int main(int argc, char* argv[])
 
     //start code here
 
+    long long int counter = 0;
+
     while (!quit) {
         while (SDL_PollEvent(&event) != 0) {
             if (event.type == SDL_QUIT) {
@@ -446,7 +448,8 @@ int main(int argc, char* argv[])
         arrayAlertas = arrayAlertasProx;
         arrayAlertasProx.clear();
         SDL_RenderPresent(renderer);
-     SDL_Delay(60);
+     SDL_Delay(1);
+     counter++;
 
     }
 
@@ -468,7 +471,7 @@ int main(int argc, char* argv[])
         std::cout << arrayvervets[i].getSignal(2) << "  Sinal do predador 2\n\n";
 
     }
-
+    std::cout << "Número de interções: " << counter << std::endl;
     SDL_Quit();
 
 
