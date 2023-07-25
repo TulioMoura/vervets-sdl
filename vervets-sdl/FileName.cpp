@@ -147,7 +147,7 @@ public:
     }
     predador(int tipo)
     {
-        srand(time(NULL));
+        
         posx = rand() % limitx;
         posy = rand() % limity;
         this->tipo = tipo;
@@ -264,12 +264,11 @@ public:
         int simboloOuvido = -1;
         arrayAlertas = a;
         arrayAlertasNext = b;
-        srand(time(0));
+        
         for (int i = 0; i < 10; i++)
         {
             for (int j = 0; j < 3; j++)
             {
-                
                 float peso = (rand() % 60);
                 pesosPredadores[i][j] = peso/100 ;
             }
@@ -318,6 +317,7 @@ int animal::limity = 15;
 
 int main(int argc, char* argv[])
 {
+    std::srand(time(0));
     SDL_Init(SDL_INIT_VIDEO);
 
     SDL_Window* window = SDL_CreateWindow("Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_W, SCREEN_H, SDL_WINDOW_SHOWN);
@@ -361,7 +361,6 @@ int main(int argc, char* argv[])
 
     for (int i = 0; i < monkey_count; i++)
     {
-        srand(NULL);
         int posy = rand() % ENV_H;
         int posx = rand() % ENV_W;
         arrayvervets.at(i) = vervet(posx, posy, &arrayAlertas, &arrayAlertasProx);
@@ -457,6 +456,7 @@ int main(int argc, char* argv[])
         std::ofstream arquivo;
         std::string filename = "monkey_weights";
         filename.append(std::to_string(i));
+        filename.append(".csv");
         arquivo.open(filename);
         arquivo << file_contents[i];
         arquivo.close();
