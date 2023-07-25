@@ -176,7 +176,7 @@ public:
             if (distToAlert < raioOuvir)
             {
                 simboloOuvido = arrayAlertas->at(i).sinal;
-                std::cout << "Alerta detectado a: " << distToAlert << " unidades de distancia" << std::endl;
+                //std::cout << "Alerta detectado a: " << distToAlert << " unidades de distancia" << std::endl;
                 if (predadoRecente != -1) {
                     if (getPredador(simboloOuvido) != predadoRecente) {
                         pesosPredadores[simboloOuvido][predadoRecente] -= 0.1;
@@ -293,7 +293,7 @@ void renderAlerta(alerta a,SDL_Renderer * renderer) {
 
     SDL_SetRenderDrawColor(renderer, 0xf9, 0xfc, 0xae, 0x80);
 
-    std::cout << " " << centerx << " " << centery << " " << realInitX << " " << realInitY << " "<<endx<<" " << endy << std::endl;
+   // std::cout << " " << centerx << " " << centery << " " << realInitX << " " << realInitY << " "<<endx<<" " << endy << std::endl;
 
     for (int i = realInitX; i < endx; i++) {
         for (int j = realInitY; j < endy; j++) {
@@ -346,17 +346,17 @@ int main(int argc, char* argv[])
 
     for (int i = 0; i < predator_a_count; i++)
     {
-        arraypredadores.at(i) = predador(1);
+        arraypredadores.at(i) = predador(0);
     }
 
     for (int i = predator_a_count; i < predator_a_count + predator_b_count; i++)
     {
-        arraypredadores.at(i) = predador(2);
+        arraypredadores.at(i) = predador(1);
     }
 
     for (int i = predator_a_count + predator_b_count; i < predator_a_count + predator_b_count + predator_c_count; i++)
     {
-        arraypredadores.at(i) = predador(3);
+        arraypredadores.at(i) = predador(2);
     }
 
     for (int i = 0; i < monkey_count; i++)
@@ -398,7 +398,7 @@ int main(int argc, char* argv[])
         }
 
         for (int i = 0; i < (predator_a_count + predator_b_count + predator_c_count); i++) {
-            arraypredadores[i].print();
+           // arraypredadores[i].print();
             arraypredadores[i].moveRandom();
             SDL_Rect * pixel = new SDL_Rect();
             pixel->h = SCREEN_H/ENV_H;
@@ -406,15 +406,15 @@ int main(int argc, char* argv[])
             pixel->x = arraypredadores[i].getPosx() * pixel->w;
             pixel->y = arraypredadores[i].getPosy() * pixel->h;
 
-            if (arraypredadores[i].getTipo() == 1) {
+            if (arraypredadores[i].getTipo() == 0) {
                 SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x34, 0xff);
 
             }
-            else if (arraypredadores[i].getTipo()==2) {
+            else if (arraypredadores[i].getTipo()==1) {
                 SDL_SetRenderDrawColor(renderer,0xeb, 0x34, 0xde, 0xff);
 
             }
-            else if (arraypredadores[i].getTipo()==3) {
+            else if (arraypredadores[i].getTipo()==2) {
                 SDL_SetRenderDrawColor(renderer, 0x34, 0xeb, 0x5e, 0xff);
             }
             SDL_RenderFillRect(renderer, pixel);
@@ -447,17 +447,26 @@ int main(int argc, char* argv[])
         arrayAlertas = arrayAlertasProx;
         arrayAlertasProx.clear();
         SDL_RenderPresent(renderer);
-     SDL_Delay(100);
+     SDL_Delay(60);
 
     }
 
     for (int i = 0; i < monkey_count; i++) {
+
+
         std::ofstream arquivo;
         std::string filename = "monkey_weights";
         filename.append(std::to_string(i));
         arquivo.open(filename);
         arquivo << file_contents[i];
         arquivo.close();
+
+        std::cout << "Sinais Vervet " << i << std::endl;
+
+        std::cout<<arrayvervets[i].getSignal(0)<<"  Sinal do predador 0\n";
+        std::cout << arrayvervets[i].getSignal(1) << "  Sinal do predador 1\n";
+        std::cout << arrayvervets[i].getSignal(2) << "  Sinal do predador 2\n\n";
+
     }
 
     SDL_Quit();
