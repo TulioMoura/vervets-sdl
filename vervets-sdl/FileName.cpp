@@ -317,7 +317,7 @@ int animal::limity = 15;
 
 int main(int argc, char* argv[])
 {
-    std::srand(time(0));
+    std::srand(time(NULL));
     SDL_Init(SDL_INIT_VIDEO);
 
     SDL_Window* window = SDL_CreateWindow("Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_W, SCREEN_H, SDL_WINDOW_SHOWN);
