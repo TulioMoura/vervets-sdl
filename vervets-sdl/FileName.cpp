@@ -1,16 +1,16 @@
-#define ENV_W  15
-#define ENV_H  15
+#define ENV_W  20
+#define ENV_H  20
 #define SCREEN_W 480
 #define SCREEN_H 480
 
 
-#define monkey_count  6
+#define monkey_count  8
 #define predator_a_count  1
 #define predator_b_count  1
 #define predator_c_count 1
 
-#define raioPercepcao  2
-#define raioOuvir  3
+#define raioPercepcao  4
+#define raioOuvir  6
 
 #include <iostream>
 #include<fstream>
@@ -60,11 +60,11 @@ public:
 
             if (posx == limitx)
             {
-                posx = limitx-1;
+                posx = limitx - 1;
             }
             if (posy == limity)
             {
-                posy = limity-1;
+                posy = limity - 1;
             }
 
             if (posx < 0)
@@ -147,7 +147,7 @@ public:
     }
     predador(int tipo)
     {
-        
+
         posx = rand() % limitx;
         posy = rand() % limity;
         this->tipo = tipo;
@@ -173,16 +173,19 @@ public:
             int xalerta = arrayAlertas->at(i).getPosx();
             int yalerta = arrayAlertas->at(i).getPosy();
             float distToAlert = distanciaAte(xalerta, yalerta);
-            if (distToAlert < raioOuvir)
+            if (distToAlert <= raioOuvir)
             {
                 simboloOuvido = arrayAlertas->at(i).sinal;
                 //std::cout << "Alerta detectado a: " << distToAlert << " unidades de distancia" << std::endl;
                 if (predadoRecente != -1) {
                     if (getPredador(simboloOuvido) != predadoRecente) {
-                        pesosPredadores[simboloOuvido][predadoRecente] -= 0.1;
+                        float temp = pesosPredadores[simboloOuvido][getPredador(simboloOuvido)];
+                        pesosPredadores[simboloOuvido][getPredador(simboloOuvido)]  -=1;
+                        //pesosPredadores[simboloOuvido][predadoRecente] +=1;
+
                     }
                     else {
-                        pesosPredadores[simboloOuvido][predadoRecente] += 0.1;
+                        pesosPredadores[simboloOuvido][predadoRecente] += 1;
                     }
                 }
 
@@ -222,27 +225,55 @@ public:
             alerta a = alerta(getPosx(), getPosy(), s);
             arrayAlertasNext->push_back(a);
             predadoRecente = p.getTipo();
-            if (simboloOuvido != -1) {
-                if (simboloOuvido != s) {
-                    pesosPredadores[simboloOuvido][p.getTipo()] -= 0.1;
+            if (simboloOuvido > -1)
+            {
+                if (simboloOuvido != s)
+                {
+                    float temp = pesosPredadores[simboloOuvido][p.getTipo()];
+                    pesosPredadores[simboloOuvido][p.getTipo()]  -=1;
+                    //pesosPredadores[s][p.getTipo()]  +=1;
                 }
-                else {
-                    pesosPredadores[simboloOuvido][p.getTipo()] += 0.1;
+                else
+                {
+                    pesosPredadores[s][p.getTipo()] += 1;
                 }
             }
         }
-        moveRandom();
     }
 
-    int getSignal(int p)
-    {
+    void soltarSinal() {
+        if (predadoRecente != -1)
+        {
+            if (simboloOuvido != -1)
+            {
+                if (simboloOuvido !=getSignal( predadoRecente))
+                {
+                    float temp = pesosPredadores[getSignal(predadoRecente)][predadoRecente];
+                    pesosPredadores[getSignal(predadoRecente)][predadoRecente] -=1;
+                    //pesosPredadores[simboloOuvido][predadoRecente] +=1;
+                }
+                else
+                {
+                    pesosPredadores[simboloOuvido][predadoRecente] += 1;
+                }
+            }
+            /*else
+            {
+                pesosPredadores[predadoRecente][predadoRecente] -= 0.1;
+            }*/
+        }
+    }
+
+    int getSignal(int p) {
         int temp = 0;
         for (int i = 0; i < 10; i++)
         {
-            if (pesosPredadores[i][p] > pesosPredadores[temp][p])
-            {
-                temp = i;
-            }
+            
+                if (pesosPredadores[i][p] > pesosPredadores[temp][p])
+                {
+                    temp = i;
+                }
+            
         }
         return temp;
     }
@@ -251,7 +282,7 @@ public:
         int temp = 0;
         for (int i = 0; i < 3; i++)
         {
-            if (pesosPredadores[i][s] > pesosPredadores[temp][s])
+            if (pesosPredadores[s][i] > pesosPredadores[s][i])
             {
                 temp = i;
             }
@@ -261,16 +292,16 @@ public:
 
     vervet(int x, int y, std::vector<alerta>* a, std::vector<alerta>* b)
     {
-        int simboloOuvido = -1;
+        int simboloOuvido = 0;
         arrayAlertas = a;
         arrayAlertasNext = b;
-        
+
         for (int i = 0; i < 10; i++)
         {
             for (int j = 0; j < 3; j++)
             {
                 float peso = (rand() % 60);
-                pesosPredadores[i][j] = peso/100 ;
+                pesosPredadores[i][j] = peso / 100;
             }
         }
         setPosx(x);
@@ -282,36 +313,36 @@ public:
 };
 
 
-void renderAlerta(alerta a,SDL_Renderer * renderer) {
+void renderAlerta(alerta a, SDL_Renderer* renderer) {
     int centerx = a.getPosx();
     int centery = a.getPosy();
-    int realInitX =(centerx - raioOuvir) * ( SCREEN_W/ENV_W );
-    int  realInitY =(centery - raioOuvir)*(SCREEN_H/ENV_H);
+    int realInitX = (centerx - raioOuvir) * (SCREEN_W / ENV_W);
+    int  realInitY = (centery - raioOuvir) * (SCREEN_H / ENV_H);
     int endx = (centerx + raioOuvir) * (SCREEN_W / ENV_W);
     int endy = (centery + raioOuvir) * (SCREEN_H / ENV_H);
 
     SDL_SetRenderDrawColor(renderer, 0xf9, 0xfc, 0xae, 0x80);
 
-   // std::cout << " " << centerx << " " << centery << " " << realInitX << " " << realInitY << " "<<endx<<" " << endy << std::endl;
+    // std::cout << " " << centerx << " " << centery << " " << realInitX << " " << realInitY << " "<<endx<<" " << endy << std::endl;
 
     for (int i = realInitX; i < endx; i++) {
         for (int j = realInitY; j < endy; j++) {
 
-            float distancia = sqrt(pow(((centerx* (SCREEN_W / ENV_W)) - i), 2) + pow(((centery * (SCREEN_H / ENV_H)) - j), 2));
+            float distancia = sqrt(pow(((centerx * (SCREEN_W / ENV_W)) - i), 2) + pow(((centery * (SCREEN_H / ENV_H)) - j), 2));
             //std::cout << " " << distancia;
             float pxDist = ((SCREEN_H / ENV_H) * raioPercepcao);
-            if (distancia < pxDist ) {
+            if (distancia < pxDist) {
                 SDL_RenderDrawPoint(renderer, i, j);
-                SDL_SetRenderDrawBlendMode(renderer,SDL_BLENDMODE_BLEND);
+                SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
             }
         }
     }
-    
 
-}
 
-int animal::limitx = 15;
-int animal::limity = 15;
+};
+
+int animal::limitx = ENV_W;
+int animal::limity = ENV_H;
 
 
 
@@ -334,7 +365,7 @@ int main(int argc, char* argv[])
     bool quit = false;
 
     //initialize ant array and environment;
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1 , SDL_RENDERER_ACCELERATED);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
 
     std::vector<predador> arraypredadores;
@@ -394,16 +425,16 @@ int main(int argc, char* argv[])
         delete pixel;
 
 
-        for (int i = 0; i < arrayAlertas.size(); i++) {
-            renderAlerta(arrayAlertas[i], renderer);
-        }
+        //for (int i = 0; i < arrayAlertas.size(); i++) {
+        //    renderAlerta(arrayAlertas[i], renderer);
+        //}
 
         for (int i = 0; i < (predator_a_count + predator_b_count + predator_c_count); i++) {
-           // arraypredadores[i].print();
+            // arraypredadores[i].print();
             arraypredadores[i].moveRandom();
-            SDL_Rect * pixel = new SDL_Rect();
-            pixel->h = SCREEN_H/ENV_H;
-            pixel->w = SCREEN_W/ENV_W;
+            SDL_Rect* pixel = new SDL_Rect();
+            pixel->h = SCREEN_H / ENV_H;
+            pixel->w = SCREEN_W / ENV_W;
             pixel->x = arraypredadores[i].getPosx() * pixel->w;
             pixel->y = arraypredadores[i].getPosy() * pixel->h;
 
@@ -411,11 +442,11 @@ int main(int argc, char* argv[])
                 SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x34, 0xff);
 
             }
-            else if (arraypredadores[i].getTipo()==1) {
-                SDL_SetRenderDrawColor(renderer,0xeb, 0x34, 0xde, 0xff);
+            else if (arraypredadores[i].getTipo() == 1) {
+                SDL_SetRenderDrawColor(renderer, 0xeb, 0x34, 0xde, 0xff);
 
             }
-            else if (arraypredadores[i].getTipo()==2) {
+            else if (arraypredadores[i].getTipo() == 2) {
                 SDL_SetRenderDrawColor(renderer, 0x34, 0xeb, 0x5e, 0xff);
             }
             SDL_RenderFillRect(renderer, pixel);
@@ -423,19 +454,32 @@ int main(int argc, char* argv[])
 
         }
 
-        for (int i = 0; i < arrayvervets.size(); i++) {
-            arrayvervets.at(i).processaAlertas();
+        for (int i = 0; i < arrayvervets.size(); i++)
+        {
+            
             arrayvervets.at(i).processaPredadores(&arraypredadores);
+            arrayvervets.at(i).processaAlertas();
+
+            // If vervet is within hearing range of a predator, it emits a signal
+            for (int j = 0; j < (predator_a_count + predator_b_count + predator_c_count); j++)
+            {
+                if (arrayvervets.at(i).distanciaAte(arraypredadores.at(j).getPosx(), arraypredadores.at(j).getPosy()) <= raioOuvir)
+                {
+                    arrayvervets.at(i).soltarSinal();
+                }
+            }
+
+            // After signaling, vervets move
+            arrayvervets.at(i).moveRandom();
+
+            // Render vervets
             SDL_Rect* pixel = new SDL_Rect();
             pixel->h = SCREEN_H / ENV_H;
             pixel->w = SCREEN_W / ENV_W;
             pixel->x = arrayvervets[i].getPosx() * pixel->w;
             pixel->y = arrayvervets[i].getPosy() * pixel->h;
-
-
             SDL_SetRenderDrawColor(renderer, 0x5e, 0x4d, 0x23, 0xff);
             SDL_RenderFillRect(renderer, pixel);
-            
             delete pixel;
 
             file_contents[i] = file_contents[i].append(arrayvervets[i].csv_dump());
@@ -443,14 +487,35 @@ int main(int argc, char* argv[])
 
 
         }
-        
-     
+
+
         arrayAlertas = arrayAlertasProx;
         arrayAlertasProx.clear();
+        //SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xff);
         SDL_RenderPresent(renderer);
-     SDL_Delay(1);
-     counter++;
+        //SDL_Delay(1000);
+        counter++;
 
+
+        for (int i = 0; i < monkey_count; i++) {
+
+
+            std::ofstream arquivo;
+            std::string filename = "monkey_weights";
+            filename.append(std::to_string(i));
+            filename.append(".csv");
+            arquivo.open(filename);
+            arquivo << file_contents[i];
+            arquivo.close();
+
+            std::cout << "Sinais Vervet "<<i<<"  P1  P2  P3\n";
+
+            std::cout << "                  "<< arrayvervets[i].getSignal(0) << "  " << arrayvervets[i].getSignal(1) << "    " << arrayvervets[i].getSignal(2) << "\n";
+
+        }
+
+        //std::cout << "Número de interções: " << counter << std::endl;
+        //std::cout << "-------------------------------------------------------------------------- " << std::endl;
     }
 
     for (int i = 0; i < monkey_count; i++) {
@@ -466,7 +531,7 @@ int main(int argc, char* argv[])
 
         std::cout << "Sinais Vervet " << i << std::endl;
 
-        std::cout<<arrayvervets[i].getSignal(0)<<"  Sinal do predador 0\n";
+        std::cout << arrayvervets[i].getSignal(0) << "  Sinal do predador 0\n";
         std::cout << arrayvervets[i].getSignal(1) << "  Sinal do predador 1\n";
         std::cout << arrayvervets[i].getSignal(2) << "  Sinal do predador 2\n\n";
 
