@@ -180,12 +180,12 @@ public:
                 if (predadoRecente != -1) {
                     if (getPredador(simboloOuvido) != predadoRecente) {
                         float temp = pesosPredadores[simboloOuvido][getPredador(simboloOuvido)];
-                        pesosPredadores[simboloOuvido][getPredador(simboloOuvido)]  -=1;
+                        pesosPredadores[simboloOuvido][getPredador(simboloOuvido)] = (pesosPredadores[simboloOuvido][getPredador(simboloOuvido)] > -100)? pesosPredadores[simboloOuvido][getPredador(simboloOuvido)] - 1.2: -100;
                         //pesosPredadores[simboloOuvido][predadoRecente] +=1;
 
                     }
                     else {
-                        pesosPredadores[simboloOuvido][predadoRecente] += 1;
+                        pesosPredadores[simboloOuvido][predadoRecente] = (pesosPredadores[simboloOuvido][predadoRecente]< 100)? pesosPredadores[simboloOuvido][predadoRecente] + 1.2: 100;
                     }
                 }
 
@@ -210,6 +210,19 @@ public:
         return out;
     }
 
+    std::string dump_predators() {
+        std::string out;
+
+        out = out.append(std::to_string(getSignal(0)));
+        out = out.append(" ,");
+        out = out.append(std::to_string(getSignal(1)));
+        out = out.append(" ,");
+        out = out.append(std::to_string(getSignal(2)));
+        out = out.append(" ;");
+        return out;
+
+    }
+
     void processaPredadores(std::vector<predador>* p) {
         for (int i = 0; i < p->size(); i++) {
             vePredador(p->at(i));
@@ -230,12 +243,12 @@ public:
                 if (simboloOuvido != s)
                 {
                     float temp = pesosPredadores[simboloOuvido][p.getTipo()];
-                    pesosPredadores[simboloOuvido][p.getTipo()]  -=1;
+                    pesosPredadores[simboloOuvido][p.getTipo()] = (pesosPredadores[simboloOuvido][p.getTipo()] > -100)?pesosPredadores[simboloOuvido][p.getTipo()] -1 : -100;
                     //pesosPredadores[s][p.getTipo()]  +=1;
                 }
                 else
                 {
-                    pesosPredadores[s][p.getTipo()] += 1;
+                    pesosPredadores[s][p.getTipo()] = (pesosPredadores[simboloOuvido][p.getTipo()] < 100)? pesosPredadores[simboloOuvido][p.getTipo()] + 1 : 100;
                 }
             }
         }
@@ -249,12 +262,12 @@ public:
                 if (simboloOuvido !=getSignal( predadoRecente))
                 {
                     float temp = pesosPredadores[getSignal(predadoRecente)][predadoRecente];
-                    pesosPredadores[getSignal(predadoRecente)][predadoRecente] -=1;
+                    pesosPredadores[getSignal(predadoRecente)][predadoRecente]  =  (pesosPredadores[getSignal(predadoRecente)][predadoRecente] > -100)? pesosPredadores[getSignal(predadoRecente)][predadoRecente] - 2.5 :-100;
                     //pesosPredadores[simboloOuvido][predadoRecente] +=1;
                 }
                 else
                 {
-                    pesosPredadores[simboloOuvido][predadoRecente] += 1;
+                    pesosPredadores[simboloOuvido][predadoRecente]  = (pesosPredadores[simboloOuvido][predadoRecente] < 100) ? pesosPredadores[simboloOuvido][predadoRecente] +2.5 : 100;
                 }
             }
             /*else
@@ -401,6 +414,7 @@ int main(int argc, char* argv[])
     int x = 0;
 
     std::string file_contents[monkey_count];
+    std::string file_content_sym[monkey_count];
 
     //start code here
 
@@ -426,7 +440,7 @@ int main(int argc, char* argv[])
 
 
         //for (int i = 0; i < arrayAlertas.size(); i++) {
-        //    renderAlerta(arrayAlertas[i], renderer);
+         //  renderAlerta(arrayAlertas[i], renderer);
         //}
 
         for (int i = 0; i < (predator_a_count + predator_b_count + predator_c_count); i++) {
@@ -456,9 +470,10 @@ int main(int argc, char* argv[])
 
         for (int i = 0; i < arrayvervets.size(); i++)
         {
-            
             arrayvervets.at(i).processaPredadores(&arraypredadores);
             arrayvervets.at(i).processaAlertas();
+            
+            
 
             // If vervet is within hearing range of a predator, it emits a signal
             for (int j = 0; j < (predator_a_count + predator_b_count + predator_c_count); j++)
@@ -468,7 +483,8 @@ int main(int argc, char* argv[])
                     arrayvervets.at(i).soltarSinal();
                 }
             }
-
+            //arrayvervets.at(i).predadoRecente = -1;
+            //arrayvervets.at(i).simboloOuvido = -1;
             // After signaling, vervets move
             arrayvervets.at(i).moveRandom();
 
@@ -485,8 +501,18 @@ int main(int argc, char* argv[])
             file_contents[i] = file_contents[i].append(arrayvervets[i].csv_dump());
             file_contents[i] = file_contents[i].append("\n");
 
+            
+
+
 
         }
+        if ((counter % 100) == 0) {
+            for (int i = 0; i < monkey_count; i++) {
+                file_content_sym[i] = file_content_sym[i].append(arrayvervets[i].dump_predators());
+                file_content_sym[i] = file_content_sym[i].append("\n");
+        }
+        }
+        
 
 
         arrayAlertas = arrayAlertasProx;
@@ -496,23 +522,27 @@ int main(int argc, char* argv[])
         //SDL_Delay(1000);
         counter++;
 
+        if ((counter % 1000) == 0) {
+            system("cls");
+                for (int i = 0; i < monkey_count; i++) {
+                    
 
-        for (int i = 0; i < monkey_count; i++) {
+                            std::ofstream arquivo;
+                            std::string filename = "monkey_weights";
+                            filename.append(std::to_string(i));
+                            filename.append(".csv");
+                            arquivo.open(filename);
+                            arquivo << file_contents[i];
+                            arquivo.close();
 
+                            std::cout << "Sinais Vervet "<<i<<"  P1  P2  P3\n";
 
-            std::ofstream arquivo;
-            std::string filename = "monkey_weights";
-            filename.append(std::to_string(i));
-            filename.append(".csv");
-            arquivo.open(filename);
-            arquivo << file_contents[i];
-            arquivo.close();
+                            std::cout << "                  "<< arrayvervets[i].getSignal(0) << "  " << arrayvervets[i].getSignal(1) << "    " << arrayvervets[i].getSignal(2) << "\n\n";
 
-            std::cout << "Sinais Vervet "<<i<<"  P1  P2  P3\n";
-
-            std::cout << "                  "<< arrayvervets[i].getSignal(0) << "  " << arrayvervets[i].getSignal(1) << "    " << arrayvervets[i].getSignal(2) << "\n";
-
+                        }
+                std::cout << counter << std::endl;
         }
+        
 
         //std::cout << "Número de interções: " << counter << std::endl;
         //std::cout << "-------------------------------------------------------------------------- " << std::endl;
@@ -528,6 +558,13 @@ int main(int argc, char* argv[])
         arquivo.open(filename);
         arquivo << file_contents[i];
         arquivo.close();
+
+        filename = "monkey_predator_signals";
+        filename = filename.append(std::to_string(i));
+        arquivo.open(filename);
+        arquivo << file_content_sym[i];
+        arquivo.close();
+
 
         std::cout << "Sinais Vervet " << i << std::endl;
 
